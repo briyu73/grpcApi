@@ -1,0 +1,28 @@
+// pubsub.proto
+syntax = "proto3";
+
+option csharp_namespace = "GrpcPubSub";
+
+service PubSubService {
+  rpc Subscribe(SubscribeRequest) returns (stream Message);
+  rpc Publish(PublishRequest) returns (PublishResponse);
+}
+
+message SubscribeRequest {
+  string topic = 1;
+}
+
+message PublishRequest {
+  string topic = 1;
+  string content = 2;
+}
+
+message PublishResponse {
+  bool success = 1;
+}
+
+message Message {
+  string topic = 1;
+  string content = 2;
+  int64 timestamp = 3;
+}
