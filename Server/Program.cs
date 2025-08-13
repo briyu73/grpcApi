@@ -9,6 +9,7 @@ public class Program
 
 		builder.Services.AddGrpc();
 		builder.Services.AddLogging();
+		builder.Services.AddSingleton<PubSubServiceImpl>();
 
 		//builder.WebHost.UseKestrel();
 		//builder.WebHost.ConfigureKestrel((context, serverOptions) => serverOptions.ListenLocalhost(55551));

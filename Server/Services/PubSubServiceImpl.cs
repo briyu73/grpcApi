@@ -7,12 +7,11 @@ namespace Server.Services
 {
 	public class PubSubServiceImpl : PubSubService.PubSubServiceBase
 	{
-		private readonly ConcurrentDictionary<string, List<Channel<Message>>> _topicSubscribers;
+		private readonly ConcurrentDictionary<string, List<Channel<Message>>> _topicSubscribers = [];
 		private readonly ILogger<PubSubServiceImpl> _logger;
 
 		public PubSubServiceImpl(ILogger<PubSubServiceImpl> logger)
 		{
-			_topicSubscribers = new ConcurrentDictionary<string, List<Channel<Message>>>();
 			_logger = logger;
 		}
 
