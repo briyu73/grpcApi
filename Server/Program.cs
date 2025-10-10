@@ -11,14 +11,14 @@ public class Program
 		builder.Services.AddLogging();
 		builder.Services.AddSingleton<PubSubServiceImpl>();
 
-		//builder.WebHost.UseKestrel();
-		//builder.WebHost.ConfigureKestrel((context, serverOptions) => serverOptions.ListenLocalhost(55551));
+		builder.WebHost.UseKestrel();
+		builder.WebHost.ConfigureKestrel((context, serverOptions) => serverOptions.ListenLocalhost(55551));
 
 		var app = builder.Build();
 
 		app.MapGrpcService<PubSubServiceImpl>();
 
-		app.Run("http://localhost:55551");
-		//app.Run();
+		//app.Run("http://localhost:55551");
+		app.Run();
 	}
 }

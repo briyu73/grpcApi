@@ -18,6 +18,8 @@ public class ClientProgram
 
 		// Let it run for a while
 		//await Task.Delay(12000);
+		//await Task.Delay(12000);
+		//await Task.Delay(12000);
 
 		Console.ReadKey();
 
