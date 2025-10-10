@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{3461765F-60A1-21BC-764E-FC799869FE2F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protos", "Protos", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		Protos\greeter.proto = Protos\greeter.proto
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PubSub", "PubSub", "{84EC636C-2D2A-4057-A451-58FAC8658331}"
 	ProjectSection(SolutionItems) = preProject
@@ -15,6 +18,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client1", "Client1\Client1.csproj", "{537C2DB9-1219-4745-9567-7EDFCB71D5EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubscriberClient", "SubscriberClient\SubscriberClient.csproj", "{5EDAAE4B-2303-A804-7871-A5FA72A03F79}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PythonGrpcLib", "PythonGrpcLib\PythonGrpcLib.pyproj", "{86586EEB-95E2-410A-A712-C394F61047AD}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PythonTestApp", "PythonTestApp\PythonTestApp.pyproj", "{FCB27569-040D-409B-8223-5028EE848DEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +41,10 @@ Global
 		{5EDAAE4B-2303-A804-7871-A5FA72A03F79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EDAAE4B-2303-A804-7871-A5FA72A03F79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EDAAE4B-2303-A804-7871-A5FA72A03F79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86586EEB-95E2-410A-A712-C394F61047AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86586EEB-95E2-410A-A712-C394F61047AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCB27569-040D-409B-8223-5028EE848DEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCB27569-040D-409B-8223-5028EE848DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

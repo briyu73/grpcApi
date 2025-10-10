@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+PythonGrpcLib/build/
+PythonGrpcLib/python_grpc_lib.egg-info/
+PythonTestApp/__pycache__/
