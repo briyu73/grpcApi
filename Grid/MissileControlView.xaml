@@ -1,0 +1,308 @@
+﻿<!-- Classification: OFFICIAL
+   - 
+   - Copyright (C) 2021 Commonwealth of Australia.
+   - 
+   - All rights reserved.
+   - 
+   - The copyright herein resides with the Commonwealth of Australia.
+   - The material(s) may not be used, modified, copied and/or distributed
+   - without the written permission of the Commonwealth of Australia
+   - represented by Defence Science and Technology Group, the Department
+   - of Defence. The copyright notice above does not evidence any actual or 
+   - intended publication of such material(s).
+   - 
+   - This material is provided on an "AS IS" basis and the Commonwealth of
+   - Australia makes no representation or warranties of any kind, express 
+   - or implied, of merchantability or fitness for any purpose. The
+   - Commonwealth of Australia does not accept any liability arising from or
+   - connected to the use of the material.
+   - 
+   - Use of the material is entirely at the Licensee's own risk. -->
+
+
+<UserControl x:Class="FlewsApp.Modules.CPX.Views.MissileControlView "
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:aux="http://swordfish.com.au/WPF/1.0"
+             mc:Ignorable="d"
+             Background="GhostWhite">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FlewsApp.Modules.CPX;component/Resources/CommandMessagesViewResourceDictionary.xaml" />
+        <ResourceDictionary Source="/FlewsApp.Modules.CPX;component/Resources/GroupStyles.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="5"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition />
+      <ColumnDefinition Width="Auto"/>
+      <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- Fired Missiles  -->
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition />
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <GroupBox MinHeight="100" Margin="5,0,5,5">
+        <GroupBox.Header>
+          <StackPanel Orientation="Horizontal" Margin="5">
+            <TextBlock Text="Fired Missiles" FontWeight="Bold" />
+            <TextBlock Margin="5, 0" FontStyle="Italic"
+                   Text="(actions are only available to detonated missiles with active targets)"/>
+          </StackPanel>
+        </GroupBox.Header>
+
+        <DataGrid ItemsSource="{Binding FiredMissileList.CollectionView}" IsReadOnly="true"
+                  SelectedValue="{Binding SelectedFiredMissile}"
+                  aux:DataGridSelectedItemsBinding.SelectedValues="{Binding MultiSelectedFiredMissilesDetails}"
+                  CanUserAddRows="False"
+                  SelectionUnit="FullRow"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                  AutoGeneratingColumn="DataGrid_AutoGeneratingColumn"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
+          <DataGrid.RowStyle>
+            <Style TargetType="DataGridRow">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding LauncherEntity.Team}" Value="RED">
+                  <Setter Property="Background" Value="LightCoral"/>
+                  <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding LauncherEntity.Team}" Value="BLUE">
+                  <Setter Property="Background" Value="LightBlue"/>
+                  <Setter Property="Foreground" Value="Black"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding LauncherEntity.Team}" Value="NEUTRAL">
+                  <Setter Property="Background" Value="White"/>
+                  <Setter Property="Foreground" Value="Black"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding LauncherEntity.Team}" Value="COLOR_UNKNOWN">
+                  <Setter Property="Background" Value="Yellow"/>
+                  <Setter Property="Foreground" Value="Black"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </DataGrid.RowStyle>
+
+          <!-- Behaviours let you augment a control with some more code behind -->
+          <i:Interaction.Behaviors>
+            <aux:GroupSortAndFilterBehavior x:Name="_groupSortFilterBehavior"
+                                               SortDescriptions="{Binding SortDescriptions}"
+                                               GroupDescriptions="{Binding GroupDescriptions}"
+                                               Filter="{Binding Filter}"/>
+          </i:Interaction.Behaviors>
+
+          <DataGrid.GroupStyle>
+            <!-- Style for groups at top level. -->
+            <GroupStyle ContainerStyle="{StaticResource ResourceKey=TopLevelStyle}"/>
+            <!-- Style for groups under the top level. -->
+            <GroupStyle HeaderTemplate="{StaticResource ResourceKey=LowerLevelStyle}"/>
+          </DataGrid.GroupStyle>
+        </DataGrid>
+      </GroupBox>
+
+      <GroupBox Grid.Row="1" Header="Selected Missile Details" Margin="5,2">
+        <TextBlock Text="{Binding SelectedFiredMissile}"/>
+      </GroupBox>
+      
+      <!-- Missile Action Buttons -->
+      <Grid Grid.Row="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="35"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Content="Damage Target" Grid.Row="0" Grid.Column="0" Margin="5,2" Command="{Binding DamageTargetCommand}" />
+        <Button Content="Destroy Target" Grid.Row="0" Grid.Column="1" Margin="5,2" Command="{Binding DestroyTargetCommand}" />
+        <Button Content="Clear All" Grid.Row="0" Grid.Column="2" Margin="5,2" Command="{Binding ClearFiredMissilesCommand}" />
+      </Grid>
+    </Grid>
+
+    <!-- Grid Splitter -->
+    <GridSplitter Grid.Column="1" Background="LightGray" Width="5" Grid.RowSpan="4"
+                  HorizontalAlignment="Center" VerticalAlignment="Stretch" ShowsPreview="True"/>
+
+    <!-- The Right Panel showing grouping, sorting and filtering -->
+
+    <ScrollViewer Grid.Column="2" Grid.RowSpan="4"
+                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <!-- List of Group Descriptions -->
+
+        <GroupBox Header="Group Descriptions" Margin="0,5,0,0">
+          <ListView ItemsSource="{Binding GroupDescriptionOptions}" Margin="1,5,1,1">
+            <i:Interaction.Behaviors>
+              <aux:ListViewDragDropReorderBehavior/>
+            </i:Interaction.Behaviors>
+            <ListView.View>
+              <GridView>
+                <GridViewColumn Header="Active">
+                  <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                      <CheckBox IsChecked="{Binding IsActive}"/>
+                    </DataTemplate>
+                  </GridViewColumn.CellTemplate>
+                </GridViewColumn>
+
+                <GridViewColumn Header="Property" DisplayMemberBinding="{Binding PropertyName}"/>
+              </GridView>
+            </ListView.View>
+          </ListView>
+        </GroupBox>
+
+        <!-- List of Sort Descriptions -->
+
+        <GroupBox Header="Sort Descriptions" Grid.Row="1"  Margin="0,5,0,0">
+          <ListView ItemsSource="{Binding SortDescriptionOptions}" Margin="1,5,1,1">
+            <i:Interaction.Behaviors>
+              <aux:ListViewDragDropReorderBehavior/>
+            </i:Interaction.Behaviors>
+            <ListView.View>
+              <GridView>
+                <GridViewColumn Header="Active">
+                  <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                      <CheckBox IsChecked="{Binding IsActive}"/>
+                    </DataTemplate>
+                  </GridViewColumn.CellTemplate>
+                </GridViewColumn>
+
+                <GridViewColumn Width="150" Header="Property" DisplayMemberBinding="{Binding PropertyName}"/>
+
+                <GridViewColumn Header="Ascending">
+                  <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                      <CheckBox IsChecked="{Binding Ascending}"/>
+                    </DataTemplate>
+                  </GridViewColumn.CellTemplate>
+                </GridViewColumn>
+
+                <GridViewColumn Header="Descending">
+                  <GridViewColumn.CellTemplate>
+                    <DataTemplate>
+                      <CheckBox IsChecked="{Binding Descending}"/>
+                    </DataTemplate>
+                  </GridViewColumn.CellTemplate>
+                </GridViewColumn>
+              </GridView>
+            </ListView.View>
+          </ListView>
+        </GroupBox>
+
+        <!-- Completed Filter Toggle -->
+
+        <GroupBox Header="Filtering" Grid.Row="2" Margin="0,5,0,0">
+          <CheckBox IsChecked="{Binding DoActionableFiltering}" Margin="1,5,1,1">Filter Out Non-Actionable Missiles</CheckBox>
+        </GroupBox>
+
+        <GroupBox Header="Multi Selected Missile Details" Grid.Row="3" Margin="0,5,0,0">
+          <DataGrid ItemsSource="{Binding MultiSelectedFiredMissilesDetails.EditableCollectionView}" Margin="1,5,1,1" IsReadOnly="true"
+                  CanUserAddRows="False" AutoGeneratingColumn="DataGrid_AutoGeneratingColumn"/>
+        </GroupBox>
+      </Grid>
+    </ScrollViewer>
+    
+    <!-- Draggable splitter -->
+    <GridSplitter Grid.Row="2" Grid.Column="0" Background="WhiteSmoke"
+                  Margin="5" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+
+    <!-- Course of Action -->
+    <Grid Grid.Row="3" Grid.Column="0" Margin="5,2">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="0.01*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Heading -->
+      <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5">
+        <TextBlock Text="Course of Action on Missile Target:" FontWeight="Bold" />
+        <TextBlock Margin="5, 0"
+                   Text="{Binding SelectedFiredMissile.TargetEntity.Name}"/>
+      </StackPanel>
+
+      <!-- Sensors -->
+      <GroupBox Header="Sensors on Target Entity" Grid.Row="1" Grid.Column="0">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="35"/>
+          </Grid.RowDefinitions>
+
+          <ListView SelectionMode="Single" MinHeight="100" Margin="5"
+                    ItemsSource="{Binding SelectedFiredMissile.TargetEntity.Sensors.CollectionView}"
+                    SelectedItem="{Binding SelectedTargetSensor}"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListView.View>
+              <GridView>
+                <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding Name}" />
+                <GridViewColumn Header="Is On" Width="100" DisplayMemberBinding="{Binding IsOn}" />
+              </GridView>
+            </ListView.View>
+          </ListView>
+
+          <Button Content="Disable" Grid.Row="1" Grid.Column="0" Margin="5" Command="{Binding DisableSensorCommand}" />
+        </Grid>
+      </GroupBox>
+
+      <!-- Commkits -->
+      <GroupBox Header="Commkits on Target Entity" Grid.Row="1" Grid.Column="2">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="35"/>
+          </Grid.RowDefinitions>
+
+          <ListView SelectionMode="Single" MinHeight="100" Margin="5"
+                    ItemsSource="{Binding SelectedFiredMissile.TargetEntity.CommKits.CollectionView}"
+                    SelectedItem="{Binding SelectedTargetCommkit}"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListView.View>
+              <GridView>
+                <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding Name}" />
+                <GridViewColumn Header="State" Width="150" DisplayMemberBinding="{Binding State}" />
+              </GridView>
+            </ListView.View>
+          </ListView>
+
+          <Button Content="Disable" Grid.Row="1" Grid.Column="0" Margin="5" Command="{Binding DisableCommkitCommand}" />
+        </Grid>
+      </GroupBox>
+    </Grid>
+  </Grid>
+
+</UserControl>
