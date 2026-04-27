@@ -2,16 +2,12 @@
 using BAM.Libraries.SharedEDMLib.Model.Structural;
 using BAM.Libraries.WpfLib;
 using BAM.Libraries.WpfLib.Commands;
-using BAM.Libraries.WpfLib.Windows;
-using BAM.Modules.DataAccess.Interface;
 using BAM.Modules.DataAccess.Models.Contexts;
 using BAM.Modules.DataAccess.UI.Views;
-using MassTransit;
+using BAM.Modules.DataSource.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Reflection;
-using System.Windows;
 using System.Windows.Input;
 
 namespace BAM.Modules.DataAccess.UI.ViewModels;
@@ -19,16 +15,20 @@ namespace BAM.Modules.DataAccess.UI.ViewModels;
 public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 {
 	// *******************************************************************************************
-	// Members
+	// Fields
 	// *******************************************************************************************
 
-	#region Members
+	#region Fields
+
+	private const int COLLECTION_LIMIT = 10;
 
 	private readonly DryIoc.IContainer _container;
 
 	private Type? _dbContextType = null;
 
-	#endregion Members
+	private Dictionary<object, EntityWrapper?> _entityCollection = [];
+
+	#endregion Fields
 
 	// *******************************************************************************************
 	// Properties
@@ -107,13 +107,10 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 			{
 				case Type dbContextType when typeof(FinanceDbContext).IsAssignableFrom(dbContextType):
 					{
-						using var uow = _container.Resolve<IFinanceDbUnitOfWork>();
-						if (uow.Context is not FinanceDbContext financeDbContext)
-						{
-							StatusMessage = $"Error: Unable to resolve {typeof(FinanceDbContext)}";
-							return;
-						}
-
+						// Use lazy loading to make sure all virtual properties are loaded
+						var dbContextOptions = new DbContextOptionsBuilder<FinanceDbContext>().UseLazyLoadingProxies().Options;
+						var financeDbContextFactory = new FinanceDBContextFactory(_container.Resolve<IDataSourceManager>());
+						using var financeDbContext = financeDbContextFactory.CreateDbContext(dbContextOptions);
 						LoadDatabase(financeDbContext);
 					}
 					break;
@@ -137,13 +134,9 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 			{
 				case Type dbContextType when typeof(FinanceDbContext).IsAssignableFrom(dbContextType):
 					{
-						using var uow = _container.Resolve<IFinanceDbUnitOfWork>();
-						if (uow.Context is not FinanceDbContext financeDbContext)
-						{
-							StatusMessage = $"Error: Unable to refresh {typeof(FinanceDbContext)}";
-							return;
-						}
-
+						var dbContextOptions = new DbContextOptionsBuilder<FinanceDbContext>().UseLazyLoadingProxies().Options;
+						var financeDbContextFactory = new FinanceDBContextFactory(_container.Resolve<IDataSourceManager>());
+						using var financeDbContext = financeDbContextFactory.CreateDbContext(dbContextOptions);
 						RefreshEntities(financeDbContext);
 					}
 					break;
@@ -182,6 +175,11 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 	public void OnDialogOpened(IDialogParameters parameters)
 	{
 		_dbContextType = parameters.GetValue<Type>("DbContextType");
+
+		if (LoadDatabaseCommand.CanExecute(null))
+		{
+			LoadDatabaseCommand.Execute(null);
+		}
 	}
 
 	#endregion
@@ -208,6 +206,20 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 		}
 
 		var type = entity.GetType();
+		EntityWrapper entityWrapper = new EntityWrapper
+		{
+			TypeName = type.Name.Replace("Proxy", ""),
+		};
+
+		if (_entityCollection.ContainsKey(entity))
+		{
+			return _entityCollection[entity];
+		}
+		else
+		{
+			_entityCollection.Add(entity, entityWrapper);
+		}
+
 		var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 				.Where(p => p.CanRead)
 				.Select(p => new PropertyWrapper
@@ -217,11 +229,11 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 				})
 				.ToList();
 
-		return new EntityWrapper
-		{
-			TypeName = type.Name,
-			Properties = properties
-		};
+		entityWrapper.Properties = properties;
+
+		_entityCollection[entity] = entityWrapper;
+
+		return entityWrapper;
 	}
 
 	private object? GetPropertyValue(object entity, PropertyInfo property, bool limitCollections = false)
@@ -230,18 +242,21 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 		{
 			var value = property.GetValue(entity);
 
-			if (value == null) return null;
-
-			var type = value.GetType();
+			if (value == null)
+			{
+				return null;
+			}
 
 			// Handle collections
-			if (value is System.Collections.IEnumerable enumerable && !(value is string))
+			if (value is System.Collections.IEnumerable enumerable && value is not string)
 			{
 				var items = new List<object>();
 				var count = 0;
 				foreach (var item in enumerable)
 				{
-					if (limitCollections && count++ > 5)
+					count++;
+
+					if (limitCollections && count > COLLECTION_LIMIT)
 					{
 						break; // Limit collection display
 					}
@@ -261,6 +276,7 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 			}
 
 			// Handle complex objects (not primitives)
+			var type = value.GetType();
 			if (!IsPrimitiveType(type))
 			{
 				return CreateEntityWrapper(value);
@@ -292,6 +308,7 @@ public class DatabaseViewerViewModel : ViewModelBase, IDialogAware
 			StatusMessage = "Loading database...";
 
 			var entityTypes = dbContext.Model.GetEntityTypes()
+					.Where(et => !et.IsOwned() && et.FindPrimaryKey() != null && !et.ClrType.IsAbstract)
 					.Select(et => new EntityTypeInfo
 					{
 						Name = et.ClrType.Name,
