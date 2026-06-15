@@ -1,0 +1,15 @@
+<PropGroup Title="Readings">
+    <Prop Key="Temperature" Value="@Sensor.Temperature.ToString("F1")" Unit="°C" />
+    <Prop Key="Humidity"    Value="@Sensor.Humidity.ToString("F1")"    Unit="%" />
+    <Prop Key="Signal"      Value="@Sensor.SignalDbm.ToString("F0")"   Unit="dBm" />
+</PropGroup>
+
+<PropGroup Title="Stats">
+    <Prop Key="Kind"    Value="@Sensor.SensorKind" />
+    <Prop Key="Online"  Value="@(Sensor.Online ? "Yes" : "No")" />
+    <Prop Key="Updates" Value="@Sensor.UpdateCount.ToString("N0")" />
+</PropGroup>
+
+@code {
+    [Parameter, EditorRequired] public SensorState Sensor { get; set; } = default!;
+}

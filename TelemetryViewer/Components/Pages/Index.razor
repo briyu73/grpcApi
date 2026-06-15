@@ -1,0 +1,18 @@
+@page "/"
+@rendermode InteractiveServer
+
+@if (Entity is null)
+{
+    <div class="empty">
+        <div class="empty-icon">📡</div>
+        <div class="empty-text">Select an entity to view its state</div>
+    </div>
+}
+else
+{
+    <EntityDetail Entity="Entity" />
+}
+
+@code {
+    [Parameter] public IEntityState? Entity { get; set; }
+}
