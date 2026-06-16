@@ -11,12 +11,17 @@
 
   <FontFamily x:Key="LatoBold">pack://application;,,,/Fonts/#Lato bold</FontFamily>
 
+  <!-- This is the main background colour of the application -->
+  <sys:Double x:Key="AppFontSize">14</sys:Double>
+  <FontFamily x:Key="AppFontFamily">MS Reference Sans Serif</FontFamily>
+  <FontWeight x:Key="AppFontWeight">Medium</FontWeight>
+
   <!-- All application window style -->
   <Style x:Key="{x:Type Window}" TargetType="{x:Type Window}">
     <Setter Property="TextElement.Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
     <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Background}"/>
-    <Setter Property="TextElement.FontWeight" Value="Medium"/>
-    <Setter Property="TextElement.FontSize" Value="14"/>
+    <Setter Property="TextElement.FontWeight" Value="{StaticResource AppFontWeight}"/>
+    <Setter Property="TextElement.FontSize" Value="{StaticResource AppFontSize}"/>
     <Setter Property="FontFamily" Value="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"/>
     <Setter Property="UseLayoutRounding" Value="True" />
   </Style>
@@ -25,8 +30,8 @@
   <Style x:Key="BamViewStyle" TargetType="{x:Type UserControl}">
     <Setter Property="TextElement.Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
     <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Background}"/>
-    <Setter Property="TextElement.FontWeight" Value="Medium"/>
-    <Setter Property="TextElement.FontSize" Value="14"/>
+    <Setter Property="TextElement.FontWeight" Value="{StaticResource AppFontWeight}"/>
+    <Setter Property="TextElement.FontSize" Value="{StaticResource AppFontSize}"/>
     <Setter Property="FontFamily" Value="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"/>
     <Setter Property="UseLayoutRounding" Value="True" />
   </Style>
