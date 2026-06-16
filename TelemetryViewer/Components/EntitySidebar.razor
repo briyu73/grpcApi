@@ -1,0 +1,95 @@
+@rendermode InteractiveServer
+@inject TelemetryService Telemetry
+@implements IDisposable
+
+<nav class="sidebar">
+
+    @foreach (var group in GroupedEntities)
+    {
+        <div class="sidebar-label">@group.Key</div>
+        <div class="sidebar-section">
+            @foreach (var entity in group)
+            {
+                <div class="entity-row @(entity == _selected ? "active" : "")"
+                     @onclick="() => Select(entity)">
+
+                    <div class="entity-icon @entity.EntityType.ToLower()">
+                        @EntityIcon(entity)
+                    </div>
+
+                    <div class="entity-meta">
+                        <div class="entity-id">@entity.EntityId</div>
+                        <div class="entity-type">@entity.EntityType</div>
+                    </div>
+
+                    <div class="entity-badge @BadgeClass(entity)"></div>
+                </div>
+            }
+        </div>
+    }
+
+    <button class="sub-btn" @onclick="OpenSubscribeDialog">
+        ＋ Subscribe
+    </button>
+
+</nav>
+
+@if (_showSubscribeDialog)
+{
+    <SubscribeDialog OnConfirm="AddSubscription"
+                     OnCancel="() => _showSubscribeDialog = false" />
+}
+
+@code {
+    [Parameter] public EventCallback<IEntityState> OnEntitySelected { get; set; }
+
+    private IEntityState? _selected;
+    private bool _showSubscribeDialog;
+
+    private IEnumerable<IGrouping<string, IEntityState>> GroupedEntities =>
+        Telemetry.Entities.GroupBy(e => e.EntityType + "s");  // "Vehicles", "Sensors", …
+
+    protected override void OnInitialized()
+    {
+        // Re-render when a new entity arrives so it appears in the sidebar
+        Telemetry.Entities.CollectionChanged += (_, _) => InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Select(IEntityState entity)
+    {
+        _selected = entity;
+        await OnEntitySelected.InvokeAsync(entity);
+    }
+
+    private void OpenSubscribeDialog() => _showSubscribeDialog = true;
+
+    private async Task AddSubscription(IEnumerable<string> ids)
+    {
+        _showSubscribeDialog = false;
+        await Telemetry.AddSubscriptionAsync(ids);
+    }
+
+    private static string EntityIcon(IEntityState e) => e.EntityType switch
+    {
+        "Vehicle" => "🚛",
+        "Sensor"  => "📡",
+        "Asset"   => "📦",
+        _         => "●"
+    };
+
+    private static string BadgeClass(IEntityState e)
+    {
+        if (!string.IsNullOrEmpty(e.Alert))  return "badge-red";
+        return e.Status switch
+        {
+            "moving" or "online" => "badge-green",
+            "idle"               => "badge-amber",
+            _                    => "badge-dim"
+        };
+    }
+
+    public void Dispose()
+    {
+        Telemetry.Entities.CollectionChanged -= (_, _) => InvokeAsync(StateHasChanged);
+    }
+}

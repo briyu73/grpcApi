@@ -1,0 +1,23 @@
+@using System.Reflection
+
+<PropGroup Title="Properties">
+    @foreach (var prop in PublicProps)
+    {
+        <Prop Key="@prop.Name" Value="@prop.GetValue(Entity)?.ToString()" />
+    }
+</PropGroup>
+
+@code {
+    [Parameter, EditorRequired] public IEntityState Entity { get; set; } = default!;
+
+    // Reflects all readable public properties except those on IEntityState itself
+    private IEnumerable<PropertyInfo> PublicProps =>
+        Entity.GetType()
+              .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+              .Where(p => p.CanRead
+                       && p.Name is not (nameof(IEntityState.EntityId)
+                                      or nameof(IEntityState.EntityType)
+                                      or nameof(IEntityState.Status)
+                                      or nameof(IEntityState.Alert)
+                                      or nameof(IEntityState.LastSeen)));
+}

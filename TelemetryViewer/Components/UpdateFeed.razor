@@ -1,0 +1,76 @@
+@rendermode InteractiveServer
+@implements IDisposable
+
+<div class="feed">
+    <div class="feed-header">
+        <span class="feed-title">Recent updates</span>
+        <span class="feed-count">showing last @_rows.Count</span>
+    </div>
+    <div class="feed-rows">
+        @foreach (var row in _rows)
+        {
+            <div class="feed-row">
+                <span class="feed-time">@row.Timestamp.ToString("HH:mm:ss.fff")</span>
+                <span class="feed-msg">@row.Summary</span>
+                <span class="feed-delta @(row.DeltaPositive ? "" : "neg")">
+                    @row.Delta
+                </span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IEntityState Entity { get; set; } = default!;
+
+    private readonly LinkedList<FeedRow> _rows = new();
+    private const int MaxRows = 50;
+
+    private IEntityState? _subscribedEntity;
+
+    protected override void OnParametersSet()
+    {
+        if (_subscribedEntity is not null)
+            _subscribedEntity.PropertyChanged -= OnChanged;
+
+        _subscribedEntity = Entity;
+        _subscribedEntity.PropertyChanged += OnChanged;
+    }
+
+    private void OnChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Build a feed row from whichever property changed
+        var row = new FeedRow(
+            Timestamp:     DateTime.UtcNow,
+            Summary:       $"{e.PropertyName} updated",
+            Delta:         "—",
+            DeltaPositive: true);
+
+        // Type-specific delta formatting
+        if (Entity is VehicleState v && e.PropertyName == nameof(VehicleState.SpeedMs))
+            row = row with { Delta = FormatDelta(v.SpeedMs, "m/s"), DeltaPositive = v.SpeedMs >= 0 };
+
+        if (Entity is VehicleState v2 && e.PropertyName == nameof(VehicleState.FuelPercent))
+            row = row with { Delta = FormatDelta(-0.1f, "%"), DeltaPositive = false };
+
+        _rows.AddFirst(row);
+        if (_rows.Count > MaxRows) _rows.RemoveLast();
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private static string FormatDelta(float value, string unit)
+        => value >= 0 ? $"+{value:F1} {unit}" : $"{value:F1} {unit}";
+
+    public void Dispose()
+    {
+        if (_subscribedEntity is not null)
+            _subscribedEntity.PropertyChanged -= OnChanged;
+    }
+
+    private record FeedRow(
+        DateTime Timestamp,
+        string   Summary,
+        string   Delta,
+        bool     DeltaPositive);
+}

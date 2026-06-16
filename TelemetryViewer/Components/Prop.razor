@@ -1,0 +1,33 @@
+<div class="prop-row">
+    <span class="prop-key">@Key</span>
+    <span class="prop-val @(_flash ? "flash" : "")" @ref="_el">
+        @Value
+        @if (!string.IsNullOrEmpty(Unit))
+        {
+            <span class="unit">@Unit</span>
+        }
+    </span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string  Key   { get; set; } = string.Empty;
+    [Parameter]                 public string? Value { get; set; }
+    [Parameter]                 public string? Unit  { get; set; }
+
+    private ElementReference _el;
+    private bool _flash;
+    private string? _prevValue;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_prevValue is not null && _prevValue != Value)
+        {
+            // Brief flash class to highlight that the value changed
+            _flash = true;
+            StateHasChanged();
+            await Task.Delay(400);
+            _flash = false;
+        }
+        _prevValue = Value;
+    }
+}

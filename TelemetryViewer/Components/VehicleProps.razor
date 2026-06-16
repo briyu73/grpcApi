@@ -1,0 +1,26 @@
+<PropGroup Title="Location">
+    <Prop Key="Latitude"  Value="@Vehicle.Latitude.ToString("F4")"  Unit="°" />
+    <Prop Key="Longitude" Value="@Vehicle.Longitude.ToString("F4")" Unit="°" />
+    <Prop Key="Altitude"  Value="@Vehicle.Altitude.ToString("F0")"  Unit="m" />
+</PropGroup>
+
+<PropGroup Title="Motion">
+    <Prop Key="Speed"   Value="@Vehicle.SpeedMs.ToString("F1")"    Unit="m/s" />
+    <Prop Key="Heading" Value="@Vehicle.HeadingDeg.ToString("F0")" Unit="°"   />
+    <Prop Key="Climb"   Value="@Vehicle.ClimbMs.ToString("F1")"    Unit="m/s" />
+</PropGroup>
+
+<PropGroup Title="Physical">
+    <Prop Key="Fuel"        Value="@Vehicle.FuelPercent.ToString("F0")" Unit="%" />
+    <Prop Key="Engine temp" Value="@Vehicle.EngineTempC.ToString("F0")" Unit="°C" />
+    <Prop Key="Payload"     Value="@Vehicle.PayloadKg.ToString("N0")"   Unit="kg" />
+</PropGroup>
+
+<PropGroup Title="Stats">
+    <Prop Key="State"   Value="@Vehicle.State" />
+    <Prop Key="Updates" Value="@Vehicle.UpdateCount.ToString("N0")" />
+</PropGroup>
+
+@code {
+    [Parameter, EditorRequired] public VehicleState Vehicle { get; set; } = default!;
+}

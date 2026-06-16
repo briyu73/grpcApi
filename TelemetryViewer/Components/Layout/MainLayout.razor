@@ -1,0 +1,35 @@
+@inherits LayoutComponentBase
+@inject TelemetryService Telemetry
+
+<div class="shell">
+
+    <header class="topbar">
+        <div class="topbar-brand"><span>//</span> Telemetry</div>
+        <div class="topbar-stat">
+            Entities <b>@Telemetry.Entities.Count</b>
+        </div>
+        <div class="conn-pill">
+            <div class="conn-dot"></div>
+            Connected
+        </div>
+    </header>
+
+    <EntitySidebar OnEntitySelected="SelectEntity" />
+
+    <main class="main">
+        @Body
+    </main>
+
+</div>
+
+@code {
+    // The layout owns selection state so sidebar and detail stay in sync
+    // without needing a shared service for something this simple
+    private IEntityState? _selected;
+
+    private void SelectEntity(IEntityState entity)
+    {
+        _selected = entity;
+        StateHasChanged();
+    }
+}

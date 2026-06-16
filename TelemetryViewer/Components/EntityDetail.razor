@@ -1,0 +1,96 @@
+@rendermode InteractiveServer
+@implements IDisposable
+
+<div class="detail">
+
+    <!-- Header -->
+    <div class="entity-header">
+        <div class="entity-header-icon">@EntityIcon(Entity)</div>
+        <div class="entity-header-meta">
+            <div class="entity-header-id">@Entity.EntityId</div>
+            <div class="entity-header-sub">@Entity.EntityType</div>
+        </div>
+        <div class="entity-header-badges">
+            <div class="status-chip @ChipClass(Entity)">@Entity.Status</div>
+            @if (!string.IsNullOrEmpty(Entity.Alert))
+            {
+                <div class="status-chip chip-red">⚠ @Entity.Alert</div>
+            }
+            <div class="last-seen">
+                @TimeSince(Entity.LastSeen) ago
+            </div>
+        </div>
+    </div>
+
+    <!-- Type-specific property groups -->
+    <div class="prop-grid">
+        @if (Entity is VehicleState v)
+        {
+            <VehicleProps Vehicle="v" />
+        }
+        else if (Entity is SensorState s)
+        {
+            <SensorProps Sensor="s" />
+        }
+        else
+        {
+            <GenericProps Entity="Entity" />
+        }
+    </div>
+
+    <!-- Update feed — works for all entity types -->
+    <UpdateFeed Entity="Entity" />
+
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IEntityState Entity { get; set; } = default!;
+
+    private IEntityState? _subscribedEntity;
+
+    protected override void OnParametersSet()
+    {
+        // Unsubscribe from old entity, subscribe to new one
+        if (_subscribedEntity is not null)
+            _subscribedEntity.PropertyChanged -= OnEntityChanged;
+
+        _subscribedEntity = Entity;
+        _subscribedEntity.PropertyChanged += OnEntityChanged;
+    }
+
+    private void OnEntityChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if (_subscribedEntity is not null)
+            _subscribedEntity.PropertyChanged -= OnEntityChanged;
+    }
+
+    private static string EntityIcon(IEntityState e) => e.EntityType switch
+    {
+        "Vehicle" => "🚛",
+        "Sensor"  => "📡",
+        "Asset"   => "📦",
+        _         => "●"
+    };
+
+    private static string ChipClass(IEntityState e)
+    {
+        if (!string.IsNullOrEmpty(e.Alert))  return "chip-red";
+        return e.Status switch
+        {
+            "moving" or "online" => "chip-green",
+            "idle"               => "chip-amber",
+            _                    => "chip-red"
+        };
+    }
+
+    private static string TimeSince(DateTime dt)
+    {
+        var elapsed = DateTime.UtcNow - dt;
+        if (elapsed.TotalSeconds < 60)  return $"{elapsed.TotalSeconds:F1} s";
+        if (elapsed.TotalMinutes < 60)  return $"{elapsed.TotalMinutes:F0} m";
+        return $"{elapsed.TotalHours:F0} h";
+    }
+}

@@ -1,0 +1,9 @@
+<div class="prop-group">
+    <div class="prop-group-title">@Title</div>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title        { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+}

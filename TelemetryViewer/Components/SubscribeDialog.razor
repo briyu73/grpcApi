@@ -1,0 +1,41 @@
+<div class="dialog-overlay" @onclick="OnCancel">
+    <div class="dialog" @onclick:stopPropagation>
+
+        <div class="dialog-title">Subscribe to entities</div>
+
+        <div class="dialog-body">
+            <label class="dialog-label">Entity IDs (comma-separated)</label>
+            <input class="dialog-input"
+                   @bind="_input"
+                   @bind:event="oninput"
+                   placeholder="truck-03, sensor-env-B" />
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn-ghost" @onclick="OnCancel">Cancel</button>
+            <button class="btn-primary"
+                    @onclick="Confirm"
+                    disabled="@string.IsNullOrWhiteSpace(_input)">
+                Subscribe
+            </button>
+        </div>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<IEnumerable<string>> OnConfirm { get; set; }
+    [Parameter] public EventCallback                       OnCancel  { get; set; }
+
+    private string _input = string.Empty;
+
+    private async Task Confirm()
+    {
+        var ids = _input
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(id => !string.IsNullOrEmpty(id));
+
+        await OnConfirm.InvokeAsync(ids);
+        _input = string.Empty;
+    }
+}
